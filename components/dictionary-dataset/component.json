@@ -8,6 +8,6 @@
   "development": {},
   "license": "MIT",
   "main": "index.js",
-  "scripts": ["index.js","module1.js","api.js"],
+  "scripts": ["index.js","module1.js","api.js","dingfubao2.js","sort_key.js"],
   "styles": []
 }

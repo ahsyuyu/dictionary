@@ -7124,6 +7124,12 @@ td.visible-print {
 .comp1 {}
 .showtext {}
 
+
+.form {
+	size:20px;
+	color:red;
+}
+
 .modalDialog {
 	position: fixed;
 	top: 0;
@@ -7140,13 +7146,14 @@ td.visible-print {
 }
 
 .modalDialog.opened {
+	overflow-y:auto;
 	text-align: center;
 	opacity:1;
 	pointer-events: auto;
 	color:white;
 }
 
-.modalDialog > div {
+/*.modalDialog > div {
 	width: 80%;
 	height:50%;
 	top:25%;
@@ -7160,7 +7167,7 @@ td.visible-print {
 	background: -moz-linear-gradient(#fff, #999);
 	background: -webkit-linear-gradient(#fff, #999);
 	background: -o-linear-gradient(#fff, #999);
-}
+}*/
 
 .modalClose {
 	font-face: courier;

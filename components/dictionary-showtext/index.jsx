@@ -18,18 +18,39 @@ var showtext = React.createClass({
     var text=e.target.textContent;
     var next=e.target.nextSibling;
     for(var i=0;i<9;i++){
-      if(next.textContent.match("。")) break;
-      if(next){
-        text+=next.textContent;
-        next=next.nextSibling;
-      }
+      if(!next || next.textContent.match("。")) break;
+      text+=next.textContent;
+      next=next.nextSibling;      
     }
-    this.props.search(text);
+    this.props.exhaustiveFind(text);
     this.setState({tofind:text});
     this.openDialog();
 
   },
+  renderUsgDef: function(item) {
+    var out=[];
+    for(var i=1; i<=(item.length-1)/2; i++){
+      out.push(
+              <div>
+                <div className="usg">【{item[i*2-1]}】</div>
+                <div className="def">{item[i*2]}</div>
+              </div>
+              );
+    } 
+    return out;   
+  },
+  renderForm: function(item) {
+    var usg_def=this.renderUsgDef(item);
+      return (
+      <div>
+        <div className="form">{item[0]}</div>
+        {usg_def}
+      </div>
+      )
+  },
   render: function() {
+    var d=this.props.def || [];
+    var def=d.map(this.renderForm);
     return (
       <div>
         <div ref="text" onClick={this.dosearch}>
@@ -74,7 +95,7 @@ var showtext = React.createClass({
         <div className="modalDialog" ref="dictdialog">
           <a href="#" onClick={this.closeDialog} 
             title="Close" className="modalClose"> X </a>
-          {this.state.tofind}
+            {def}
         </div>
 
       </div>

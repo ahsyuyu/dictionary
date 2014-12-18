@@ -4,30 +4,47 @@ var sax = require("sax")
 
 //--------------------------------------------------
 var tagstack=[];
-var out=[];
-var start=false;
-var parser = sax.parser(true)
-parser.onopentag = function (node,line) {// opened a tag.  node has "name" and "attributes"
-	// if(node.name != "body") return;
-	tagstack.push(node.name);
-  	if(node.name === "entry"){
-  		//print("{");
-  	} 	
-  	//if(node.name === "body") start=true;
-  	print(line);
 
+
+printer.onopentag = function (node) {// opened a tag.  node has "name" and "attributes"
+	if(node.name != "g") tagstack.push(node.name); //
+  	if(node.name === "body"){
+  		print("[");
+  	} 	
+  	//console.log(tagstack);
+  	//if(node.name==="g") print("<G>");
 };
+var key="", usg="", def="";
 printer.ontext = function (t) {// got some text.  t is the string of text.
+	var out=[];
+	var obj={};
 	var tagname=tagstack[tagstack.length-1];
 	var text=t.replace(/\n/g,"");
-	//print('"'+tagstack[tagstack.length-1]+'":"'+text+'",\n');	
-
+	if(tagname === "form") {
+		key=text;
+	}
+	if(tagname === "usg") {
+		usg=text;
+	}
+	if(tagname === "def") {
+		def=text;
+		// obj[key]=[usg,def];
+		// console.log(obj);
+		console.log('["'+key+'"'+',"'+usg+'"'+',"'+def+'"]');
+		console.log(",");
+	}
+	
 };
 
+
+var toPrint=false;
 printer.on("closetag", function (tag) {
-	tagstack.pop();
-	//if(tag === "entry") print("},\n");
-	
+	if(tag != "g") tagstack.pop();
+	if(tag === "body") print("]");
+	if(tag === "entry") {
+		toPrint=true;
+	} else {toPrint=false;}
+
 })
 
 // printer.on("text", ontext)
@@ -48,7 +65,7 @@ if (!process.argv[0]) {
     "TODO: read from stdin or take a file")
 }
 //var xmlfile = require("path").join(process.cwd(), process.argv[2])
-var fstr = fs.createReadStream("d.xml", { encoding: "utf8" })
+var fstr = fs.createReadStream("dingfubao_no_g.xml", { encoding: "utf8" })
 
 function print (c) {
   if (!process.stdout.write(c)) {
