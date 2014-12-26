@@ -3,54 +3,161 @@
 /* to rename the component, change name of ./component.js and  "dependencies" section of ../../component.js */
 
 //var othercomponent=Require("other"); 
-
-var showtext = React.createClass({
+var Breadcrumb = React.createClass({
   getInitialState: function() {
-    return {};
+    return {index:0};
+  }, 
+  componentDidUpdate: function() {
+    var id=this.props.ids[this.state.index];
+    $('span[id=]').removeClass("highlight");
+    $('span[id="'+id+'"]').addClass("highlight");
+    console.log(id);
   },
+  toPopStack: function(index) {
+    var popTime=this.props.terms.length-1-index;
+    this.props.popStack(popTime);
+  },
+  search: function(e) {
+    var tofind=e.target.parentElement.dataset.tofind;
+    var index=e.target.parentElement.dataset.index;
+    this.toPopStack(index);
+    this.setState({index:index});
+    this.props.exhaustiveFind(tofind);
+  },
+  renderBreadCrumb: function(term,index) {
+    var tofind=this.props.tofinds[index];
+    return (
+      <a href="#" onClick={this.search} data-tofind={tofind} data-index={index}>{term}/</a>
+      );
+  },
+  render: function() {
+    var h=this.props.terms;
+    var history=h.map(this.renderBreadCrumb);
+    return (
+      <div>
+        {history}
+      </div>
+      );
+  }
+});
+
+var DefBox = React.createClass({
+  getInitialState: function() {
+    return {openBox:false,id:0,ch:""};
+  }, 
   openDialog:function() {
-    this.refs.dictdialog.getDOMNode().classList.add("opened");
+   // if(this.props.openBox) this.refs.dictdialog.getDOMNode().classList.add("opened");
   },
   closeDialog:function() {
-    this.refs.dictdialog.getDOMNode().classList.remove("opened");
+    //this.refs.dictdialog.getDOMNode().classList.remove("opened");
+    this.setState({openBox:false});
+    this.props.popStack(this.props.terms.length,true);
   },
-  dosearch: function(e) {
-    var text=e.target.textContent;
-    var next=e.target.nextSibling;
-    for(var i=0;i<9;i++){
-      if(!next || next.textContent.match("。")) break;
-      text+=next.textContent;
-      next=next.nextSibling;      
-    }
-    this.props.exhaustiveFind(text);
-    this.setState({tofind:text});
-    this.openDialog();
-
+  componentWillReceiveProps: function(nextprops) {
+    this.setState({openBox:nextprops.openBox});
   },
-  renderUsgDef: function(item) {
+  todosearch: function(e) {
+    //this.props.ids.push(e.target.id);
+    var ch=e.target.textContent;
+    this.props.dosearch(e);
+  },
+  renderUsgDef: function(entries,termIndex) {
     var out=[];
-    for(var i=1; i<=(item.length-1)/2; i++){
+    for(var i=0; i<(entries.length-1)/2; i++){
+      var spanDef=entries[(i+1)*2].replace(/./g,function(ch,idx){ 
+        return '<span id="s'+(termIndex*65536+i*8912+idx)+'">'+ch+'</span>';
+      });
       out.push(
               <div>
-                <div className="usg">【{item[i*2-1]}】</div>
-                <div className="def">{item[i*2]}</div>
+                <div className="usg">【{entries[(i+1)*2-1]}】</div>
+                <div className="def" dangerouslySetInnerHTML={{__html: spanDef}}></div>
               </div>
               );
     } 
     return out;   
   },
-  renderForm: function(item) {
-    var usg_def=this.renderUsgDef(item);
+  renderTerm: function(item,termIndex) {
+    var usg_def=this.renderUsgDef(item,termIndex);
       return (
-      <div>
-        <div className="form">{item[0]}</div>
+      <div data-term={item[0]} onClick={this.todosearch}>
+        <div className="term">{item[0]}</div>
         {usg_def}
       </div>
       )
   },
   render: function() {
-    var d=this.props.def || [];
-    var def=d.map(this.renderForm);
+    var d=this.props.def || [["no result"]];
+    var def=d.map(this.renderTerm);
+   // this.openDialog();
+    var opened=this.state.openBox?" opened":"";
+    return (
+      <div>
+        <div className={"modalDialog"+opened} ref="dictdialog">
+        <a href="#" onClick={this.closeDialog} 
+          title="Close" className="modalClose"> X </a>
+        <Breadcrumb exhaustiveFind={this.props.exhaustiveFind} dosearch={this.props.dosearch} terms={this.props.terms} tofinds={this.props.tofinds} ids={this.props.ids} popStack={this.props.popStack} />
+        {def}
+        </div>
+      </div>
+      );
+  }
+});
+var showtext = React.createClass({
+  getInitialState: function() {
+    return {openBox:false,terms:[],tofinds:[],ids:[]};
+  },
+  popStack: function(popTime,clearAll) {
+    for(var i=0; i<popTime; i++){
+      this.state.terms.pop();
+      this.state.tofinds.pop();
+      this.state.ids.pop();
+      //this.setState({terms:newTerms,tofinds:newTofinds,ids:newIds});
+    }
+    if(clearAll)this.state.tofinds.pop();
+  },
+  getTerm: function(e) {
+    var target=e.target;
+    while(target && typeof target.dataset.term == "undefined"){
+      target=target.parentElement;
+    }
+    if(!target) return "";
+
+    return target.dataset.term;
+  },
+  dosearch: function(e) {
+    $('span[id=]').removeClass("highlight");
+    if(!e.target || e.target.nodeName != "SPAN") return;
+    var id=e.target.id || "";
+    var tofind=e.target.textContent;
+    var next=e.target.nextSibling;
+    var prev=e.target.previousSibling;
+    for(var i=0;i<9;i++){
+      if(!next || next.textContent.match(/[。，、「」：]/g)) break;     
+      tofind+=next.textContent;     
+      next=next.nextSibling;         
+    }
+
+    for(var j=0;i<9;j++){
+      if(!prev || prev.textContent.match(/[。，、「」：]/g)) break;
+      tofind=prev.textContent+tofind;
+      prev=prev.previousSibling;
+    }
+    this.props.exhaustiveFind(tofind);
+    var term=this.getTerm(e);
+    this.state.tofinds.push(tofind);
+    if(term != "") this.state.terms.push(term);
+    if(id != "") this.state.ids.push(id);
+    var l=this.state.terms.length;
+    if(this.state.terms[l-1] && this.state.terms[l-2] && this.state.terms[l-1]==this.state.terms[l-2]){
+      this.state.ids[this.state.ids.length-2]=this.state.ids[this.state.ids.length-1];
+      this.popStack(1,false);
+    }
+    this.setState({openBox:true});
+  },
+  render: function() {
+    console.log(this.state.tofinds);
+    console.log(this.state.terms);
+    console.log(this.state.ids);
     return (
       <div>
         <div ref="text" onClick={this.dosearch}>
@@ -92,12 +199,8 @@ var showtext = React.createClass({
 <span>揭</span><span>諦</span><span>揭</span><span>諦</span>。<span>波</span><span>羅</span><span>揭</span><span>諦</span>。<span>波</span><span>羅</span><span>僧</span><span>揭</span><span>諦</span>。<span>菩</span><span>提</span><span>薩</span><span>婆</span><span>訶</span>。
         </div>
 
-        <div className="modalDialog" ref="dictdialog">
-          <a href="#" onClick={this.closeDialog} 
-            title="Close" className="modalClose"> X </a>
-            {def}
-        </div>
-
+        <DefBox exhaustiveFind={this.props.exhaustiveFind} def={this.props.def} dosearch={this.dosearch} openBox={this.state.openBox} terms={this.state.terms} tofinds={this.state.tofinds} ids={this.state.ids} popStack={this.popStack} />
+        
       </div>
     );
   }

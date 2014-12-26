@@ -4,10 +4,15 @@
 
 //var othercomponent=Require("other"); 
 var Showtext=Require("showtext"); 
+var Showtext_t=Require("showtext_t");
 var Dictionary=Require("dictionary");
-var exhaustiveFind=Require("dataset").api.exhaustiveFind; 
+var api=Require("dataset").api; 
 var dingfubao=Require("dataset").dingfubao; 
-var sort_key=Require("dataset").sort_key; 
+var mahavyutpatti=Require("dataset").mahavyutpatti; 
+// var entries=Require("dataset").entries; 
+// var indexes=Require("dataset").indexes; 
+var entries=Require("dataset").entries_m; 
+var indexes=Require("dataset").indexes_m; 
 var main = React.createClass({
   getInitialState: function() {
     return {};
@@ -17,32 +22,19 @@ var main = React.createClass({
     this.setState({tofind:tofind});
     for(var i=0; i<tofind.length; i++){
       for(var j=2;j<tofind.length+1-i; j++){
-        var res=this.search(tofind.substr(i,j));
-        if(res.length != 0) {
-          res.map(function(item){
-            out.push(dingfubao[item[1]]);
-          });
-        }
+        var index=api.indexOfSorted(entries,tofind.substr(i,j));
+        if(index) out.push(mahavyutpatti[indexes[index]]);
       }
     }
-    console.log(out);
-    this.setState({def:out});
+    out.length != 0 ? this.setState({def:out}) : this.setState({def:null});
   },
-  search: function(tofind) {
-    var out=[];
-    sort_key.map(function(item){
-      if(tofind.length == item[0].length && item[0].match(tofind)){
-        out.push(item);
-      }
-    });
-    return out;
-  },
+
   render: function() {
     return (
       <div>
-        Rendering main
-        <Showtext exhaustiveFind={this.exhaustiveFind} def={this.state.def}/>
 
+        <br/><br/>
+        <Showtext_t exhaustiveFind={this.exhaustiveFind} def={this.state.def}/>
 
       </div>
     );

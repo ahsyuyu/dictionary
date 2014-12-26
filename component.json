@@ -14,7 +14,8 @@
     "dictionary/main": "*",
     "dictionary/comp1": "*",
     "dictionary/showtext": "*",
-    "dictionary/dataset": "*"
+    "dictionary/dataset": "*",
+    "dictionary/showtext_t": "*"
   },
   "development": {},
   "paths": [
